@@ -16,20 +16,58 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
+          <scala.version>2.11.12</scala.version>
+          <spark.version>2.4.3</spark.version>
+
   </properties>
 
   <dependencies>
 
       <dependency>
           <groupId>org.apache.spark</groupId>
-          <artifactId>spark-streaming_2.12</artifactId>
-          <version>2.4.3</version>
+          <artifactId>spark-streaming_2.11</artifactId>
+          <version>${spark.version}</version>
       </dependency>
 
       <dependency>
           <groupId>redis.clients</groupId>
           <artifactId>jedis</artifactId>
           <version>2.9.0</version>
+      </dependency>
+
+      <dependency>
+          <groupId>org.scala-lang</groupId>
+          <artifactId>scala-library</artifactId>
+          <version>${scala.version}</version>
+      </dependency>
+      <dependency>
+          <groupId>org.scala-lang</groupId>
+          <artifactId>scala-compiler</artifactId>
+          <version>${scala.version}</version>
+      </dependency>
+      <dependency>
+          <groupId>org.scala-lang</groupId>
+          <artifactId>scala-reflect</artifactId>
+          <version>${scala.version}</version>
+      </dependency>
+
+      <!-- Spark Streaming-->
+     <!-- <dependency>
+          <groupId>org.apache.spark</groupId>
+          <artifactId>spark-streaming_${scala.version}</artifactId>
+          <version>${spark.version}</version>
+      </dependency>-->
+      <!-- Spark Streaming 整合 Flume 依赖-->
+      <dependency>
+          <groupId>org.apache.spark</groupId>
+          <artifactId>spark-streaming-flume_2.11</artifactId>
+          <version>${spark.version}</version>
+      </dependency>
+
+      <dependency>
+          <groupId>org.apache.avro</groupId>
+          <artifactId>avro</artifactId>
+          <version>1.7.7</version>
       </dependency>
 
     <dependency>
@@ -98,7 +136,9 @@
                           <manifest>
                               <addClasspath>true</addClasspath>
                               <classpathPrefix>lib/</classpathPrefix>
-                              <mainClass>com.bigdata.App</mainClass>
+                              <!--<mainClass>com.bigdata.App</mainClass>-->
+                              <!--<mainClass>com.bigdata.WordGenerateUtils</mainClass>-->
+                              <mainClass>com.bigdata.FlumeFileTest</mainClass>
                           </manifest>
                       </archive>
                   </configuration>
@@ -117,6 +157,20 @@
                           <configuration>
                               <outputDirectory>${project.build.directory}/lib</outputDirectory>
                           </configuration>
+                      </execution>
+                  </executions>
+              </plugin>
+
+              <plugin>
+                  <groupId>org.scala-tools</groupId>
+                  <artifactId>maven-scala-plugin</artifactId>
+                  <version>2.15.2</version>
+                  <executions>
+                      <execution>
+                          <goals>
+                              <goal>compile</goal>
+                              <goal>testCompile</goal>
+                          </goals>
                       </execution>
                   </executions>
               </plugin>

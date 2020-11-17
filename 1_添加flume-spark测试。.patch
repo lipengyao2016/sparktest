@@ -1,0 +1,267 @@
+Index: ScalaFlumeTest/src/FlumeTest.scala
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- ScalaFlumeTest/src/FlumeTest.scala	(date 1605532579879)
++++ ScalaFlumeTest/src/FlumeTest.scala	(date 1605532579879)
+@@ -0,0 +1,3 @@
++object FlumeTest extends  App {
++    println("hello world");
++}
+Index: src/main/java/com/bigdata/utils/PathUtils.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/java/com/bigdata/utils/PathUtils.java	(date 1605536195481)
++++ src/main/java/com/bigdata/utils/PathUtils.java	(date 1605536195481)
+@@ -0,0 +1,13 @@
++package com.bigdata.utils;
++
++import java.io.File;
++
++public class PathUtils {
++    public static  String getCurPath()
++    {
++        String realPath = PathUtils.class.getClassLoader().getResource("").getFile();
++        File file = new File(realPath);
++        String classPath = file.getParentFile().getAbsolutePath();
++        return  classPath;
++    }
++}
+Index: src/main/java/com/bigdata/FlumeFileTest.scala
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/java/com/bigdata/FlumeFileTest.scala	(date 1605602800405)
++++ src/main/java/com/bigdata/FlumeFileTest.scala	(date 1605602800405)
+@@ -0,0 +1,17 @@
++package com.bigdata
++
++import org.apache.spark.SparkConf
++import org.apache.spark.streaming.flume.FlumeUtils
++import org.apache.spark.streaming.{Seconds, StreamingContext}
++
++object FlumeFileTest {
++  def main(args: Array[String]): Unit = {
++     var sparkConf = new SparkConf()
++    sparkConf.setAppName("flumeFile").setMaster("local[4]");
++     var streamCtxt = new StreamingContext(sparkConf,Seconds(5))
++     var flumeStream = FlumeUtils.createStream(streamCtxt,"hadoop001",8888)
++    flumeStream.map(line => new String(line.event.getBody().array()).trim).print()
++    streamCtxt.start()
++    streamCtxt.awaitTermination()
++  }
++}
+Index: src/main/java/com/bigdata/WordGenerateUtils.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/java/com/bigdata/WordGenerateUtils.java	(date 1605536664889)
++++ src/main/java/com/bigdata/WordGenerateUtils.java	(date 1605536664889)
+@@ -0,0 +1,101 @@
++package com.bigdata;
++
++
++import com.bigdata.utils.PathUtils;
++
++import java.io.IOException;
++import java.net.URI;
++import java.net.URISyntaxException;
++import java.nio.file.Files;
++import java.nio.file.Path;
++import java.nio.file.Paths;
++import java.nio.file.StandardOpenOption;
++import java.util.Arrays;
++import java.util.List;
++import java.util.Random;
++
++public class WordGenerateUtils {
++    public static final String[] wordList = new String[]{"Spark", "Hadoop", "HBase", "Storm", "Flink", "Hive"};
++    public static List<String> wordArray = Arrays.asList(wordList);
++
++    public String generateWordStrs(int count)
++    {
++        StringBuffer sb = new StringBuffer();
++        for (int i = 0;i < count;i++)
++        {
++            Random random = new Random();
++            int randWordIndex = random.nextInt(wordList.length);
++            sb.append(wordList[randWordIndex] + " ");
++            if (i%10 == 0 && i != 0)
++            {
++                sb.append(" \n");
++            }
++        }
++        return  sb.toString();
++    }
++
++    public boolean saveToLocalFile(String filePath,String fileData)
++    {
++        boolean bRet = false;
++        try {
++            Path path = Paths.get(filePath);
++            if (!Files.exists(path))
++            {
++                Files.write(path,fileData.getBytes(), StandardOpenOption.CREATE);
++            }
++            else{
++                Files.write(path,fileData.getBytes(), StandardOpenOption.APPEND);
++            }
++
++            bRet = true;
++        } catch (IOException e) {
++            e.printStackTrace();
++        }
++        return  bRet;
++    }
++
++    public static class GeneWordTask implements Runnable
++    {
++       private WordGenerateUtils wordGenerateUtils;
++
++        public GeneWordTask(WordGenerateUtils wordGene) {
++            this.wordGenerateUtils = wordGene;
++        }
++
++        @Override
++        public void run() {
++            int i  = 0;
++            String savePath = "/usr/local/flume/exec-log";
++//            savePath = PathUtils.getCurPath() + "/exec-log";
++            System.out.println(" run start. savePath:" + savePath);
++            while (i < 1000)
++            {
++                this.wordGenerateUtils.saveToLocalFile(savePath,wordGenerateUtils.generateWordStrs(100));
++                try {
++                    Thread.sleep(10);
++                } catch (InterruptedException e) {
++                    e.printStackTrace();
++                }
++                if (i%10 == 0)
++                {
++                    System.out.println(" run loop i:"+i);
++                }
++                i++;
++
++            }
++            System.out.println(" run end.");
++        }
++    }
++
++
++    public static void main(String[] args) throws InterruptedException {
++       WordGenerateUtils wordGenerateUtils = new WordGenerateUtils();
++       int count = 100000;
++//       wordGenerateUtils.saveToLocalFile("/usr/local/flume/exec-log",wordGenerateUtils.generateWordStrs(count));
++        GeneWordTask geneWordTask = new GeneWordTask(wordGenerateUtils);
++        Thread t1 = new Thread(geneWordTask);
++        t1.start();
++        t1.join();
++    }
++
++}
+Index: pom.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- pom.xml	(revision 414f85faf2ecca32bac6db7dd436850c8427552c)
++++ pom.xml	(date 1605605182986)
+@@ -16,14 +16,17 @@
+     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+     <maven.compiler.source>1.8</maven.compiler.source>
+     <maven.compiler.target>1.8</maven.compiler.target>
++          <scala.version>2.11.12</scala.version>
++          <spark.version>2.4.3</spark.version>
++
+   </properties>
+ 
+   <dependencies>
+ 
+       <dependency>
+           <groupId>org.apache.spark</groupId>
+-          <artifactId>spark-streaming_2.12</artifactId>
+-          <version>2.4.3</version>
++          <artifactId>spark-streaming_2.11</artifactId>
++          <version>${spark.version}</version>
+       </dependency>
+ 
+       <dependency>
+@@ -31,6 +34,41 @@
+           <artifactId>jedis</artifactId>
+           <version>2.9.0</version>
+       </dependency>
++
++      <dependency>
++          <groupId>org.scala-lang</groupId>
++          <artifactId>scala-library</artifactId>
++          <version>${scala.version}</version>
++      </dependency>
++      <dependency>
++          <groupId>org.scala-lang</groupId>
++          <artifactId>scala-compiler</artifactId>
++          <version>${scala.version}</version>
++      </dependency>
++      <dependency>
++          <groupId>org.scala-lang</groupId>
++          <artifactId>scala-reflect</artifactId>
++          <version>${scala.version}</version>
++      </dependency>
++
++      <!-- Spark Streaming-->
++     <!-- <dependency>
++          <groupId>org.apache.spark</groupId>
++          <artifactId>spark-streaming_${scala.version}</artifactId>
++          <version>${spark.version}</version>
++      </dependency>-->
++      <!-- Spark Streaming 整合 Flume 依赖-->
++      <dependency>
++          <groupId>org.apache.spark</groupId>
++          <artifactId>spark-streaming-flume_2.11</artifactId>
++          <version>${spark.version}</version>
++      </dependency>
++
++      <dependency>
++          <groupId>org.apache.avro</groupId>
++          <artifactId>avro</artifactId>
++          <version>1.7.7</version>
++      </dependency>
+ 
+     <dependency>
+       <groupId>junit</groupId>
+@@ -98,7 +136,9 @@
+                           <manifest>
+                               <addClasspath>true</addClasspath>
+                               <classpathPrefix>lib/</classpathPrefix>
+-                              <mainClass>com.bigdata.App</mainClass>
++                              <!--<mainClass>com.bigdata.App</mainClass>-->
++                              <!--<mainClass>com.bigdata.WordGenerateUtils</mainClass>-->
++                              <mainClass>com.bigdata.FlumeFileTest</mainClass>
+                           </manifest>
+                       </archive>
+                   </configuration>
+@@ -120,6 +160,20 @@
+                       </execution>
+                   </executions>
+               </plugin>
++
++              <plugin>
++                  <groupId>org.scala-tools</groupId>
++                  <artifactId>maven-scala-plugin</artifactId>
++                  <version>2.15.2</version>
++                  <executions>
++                      <execution>
++                          <goals>
++                              <goal>compile</goal>
++                              <goal>testCompile</goal>
++                          </goals>
++                      </execution>
++                  </executions>
++              </plugin>
+ 
+               <!--<plugin>-->
+                   <!--<groupId>org.apache.maven.plugins</groupId>-->
