@@ -9,7 +9,8 @@ object FlumeFileTest {
      var sparkConf = new SparkConf()
     sparkConf.setAppName("flumeFile").setMaster("local[4]");
      var streamCtxt = new StreamingContext(sparkConf,Seconds(5))
-     var flumeStream = FlumeUtils.createStream(streamCtxt,"hadoop001",8888)
+//     var flumeStream = FlumeUtils.createStream(streamCtxt,"hadoop001",8888)
+    var flumeStream = FlumeUtils.createPollingStream(streamCtxt,"hadoop001",8888)
     flumeStream.map(line => new String(line.event.getBody().array()).trim).print()
     streamCtxt.start()
     streamCtxt.awaitTermination()

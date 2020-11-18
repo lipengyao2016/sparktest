@@ -14,8 +14,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
+import org.apache.avro.ipc.Transceiver;
+import org.apache.spark.streaming.flume.sink.EventBatch;
+
 public class WordGenerateUtils {
-    public static final String[] wordList = new String[]{"Spark", "Hadoop", "HBase", "Storm", "Flink", "Hive"};
+    public static final String[] wordList = new String[]{"java", "php", "go", "python", "c", "js"};
     public static List<String> wordArray = Arrays.asList(wordList);
 
     public String generateWordStrs(int count)
