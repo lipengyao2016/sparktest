@@ -76,6 +76,13 @@
           <!--<version>1.8.2</version>-->
       <!--</dependency>-->
 
+      <!-- Spark Streaming 整合 Kafka 依赖-->
+      <dependency>
+          <groupId>org.apache.spark</groupId>
+          <artifactId>spark-streaming-kafka-0-10_2.11</artifactId>
+          <version>${spark.version}</version>
+      </dependency>
+
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
@@ -144,7 +151,8 @@
                               <classpathPrefix>lib/</classpathPrefix>
                               <!--<mainClass>com.bigdata.App</mainClass>-->
                               <!--<mainClass>com.bigdata.WordGenerateUtils</mainClass>-->
-                              <mainClass>com.bigdata.FlumeFileTest</mainClass>
+                              <!--<mainClass>com.bigdata.FlumeFileTest</mainClass>-->
+                              <mainClass>com.bigdata.KafkaSparkTest</mainClass>
                           </manifest>
                       </archive>
                   </configuration>
